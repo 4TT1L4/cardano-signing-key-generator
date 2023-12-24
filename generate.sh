@@ -116,12 +116,11 @@ EOF4
   cat $PAYMENT_ADDRESS_FILE
   echo
   echo "======================[PAYMENT SIGNING KEY]======================================"
-  cat $PAYMENT_SKEY_FILE | jq
+  cat $PAYMENT_SKEY_FILE
   echo "===================[PAYMENT SIGNING KEY CBOR HEX]======================================"
   cat $PAYMENT_SKEY_FILE | jq -r ".cborHex"
   echo "=====================[PAYMENT VERIFICATION KEY]=================================="
-  cat $PAYMENT_VKEY_FILE | jq
-
+  cat $PAYMENT_VKEY_FILE
   echo "================================================================================="
 
   # Clean up and wipe all the data:
