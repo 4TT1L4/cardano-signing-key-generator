@@ -1,6 +1,24 @@
 #!/bin/bash
 set -Eeuo pipefail
 
+CADDR=${CADDR:=$( which cardano-address )}
+[[ -z "$CADDR" ]] && {
+        echo "cardano-address cannot be found, exiting..." >&2 ;
+        exit 127
+}
+
+CCLI=${CCLI:=$( which cardano-cli )}
+[[ -z "$CCLI" ]] && {
+        echo "cardano-cli cannot be found, exiting..." >&2
+        exit 127
+}
+
+BECH32=${BECH32:=$( which bech32 )}
+[[ -z "$BECH32" ]] && {
+        echo "bech32 cannot be found, exiting..." >&2
+        exit 127
+}
+
 function cardano-address-testnet-init() {
   NETWORK_TAG=testnet
   MAGIC="--testnet-magic 1097911063"
@@ -119,13 +137,52 @@ EOF4
   cat $PAYMENT_SKEY_FILE | jq
   echo "===================[PAYMENT SIGNING KEY CBOR HEX]======================================"
   cat $PAYMENT_SKEY_FILE | jq -r ".cborHex"
+  echo "===================[EXTENDED PAYMENT SIGNING KEY]=================================="
+  cat $PAYMENT_ESKEY_FILE | jq
   echo "=====================[PAYMENT VERIFICATION KEY]=================================="
   cat $PAYMENT_VKEY_FILE | jq
-  echo "================================================================================="
 
   # Clean up and wipe all the data:
   PHRASE=""
   rm -rf $WALLET_DIR
 }
 
-cardano-address-create-wallet
+function generate-random-wallet-keys() {
+  WALLET_DIR=/data
+  mkdir $WALLET_DIR
+
+  if [ "${NETWORK:-mainnet}" == "mainnet" ]; then
+    cardano-address-mainnet-init
+  else
+    cardano-address-testnet-init
+  fi
+
+  cardano-cli address key-gen \
+    --verification-key-file $WALLET_DIR/key.vkey \
+    --signing-key-file $WALLET_DIR/key.skey
+
+  cardano-cli address build \
+    --payment-verification-key-file $WALLET_DIR/key.vkey \
+    --out-file $WALLET_DIR/payment.addr \
+    $MAGIC
+
+  echo "========================[CARDANO NETWORK]========================================"
+  echo $NETWORK_TAG | tr '[:lower:]' '[:upper:]'
+  echo "============================[ADDRESS]============================================="
+  cat $WALLET_DIR/payment.addr
+  echo
+  echo "=======================[PAYMENT SIGNING KEY]======================================"
+  cat $WALLET_DIR/key.skey | jq
+  echo "====================[PAYMENT VERIFICATION KEY]======================================"
+  cat $WALLET_DIR/key.vkey | jq
+
+  # Clean up and wipe all the data:
+  PHRASE=""
+  rm -rf $WALLET_DIR
+}
+
+if [ "${ADVANCED:=false}" == "false" ]; then
+  generate-random-wallet-keys
+else
+  cardano-address-create-wallet
+fi
