@@ -1,3 +1,11 @@
+## Overview
+
+This repository contains the code for a simple utility tool to generate random payment signing keys for the Cardano Networks.
+
+The tool generates a recovery phrase as well, so the wallet could be easily imported into a browser extension like Eternl or any other Cardano Wallet.
+
+![image](https://github.com/4TT1L4/cardano-signing-key-generator/assets/2914096/1ae3aeab-5480-47e7-9208-ec38255e5844)
+
 ## Usage
 
 In order to generate a Cardano MAINNET payment signing key, use the following command:
